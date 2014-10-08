@@ -1,0 +1,179 @@
+//Jake Shankman
+//Period 2
+//Perlocate
+//9/28/2012
+
+#include <stdlib.h>
+#include <stdio.h>
+#include "mpi.h"
+
+#define maxR 400
+#define maxC 400
+int row, col;
+float prob;
+int span(int matrix[maxR][maxC],int group)
+{
+  int s1, s2, s3, s4;
+  s1 = s2 = s3 = s4 = 0;
+  int i, j;
+  for(i = 0; i < row; i++)
+  {
+    if(matrix[i][0] == group)
+      s1 = 1;
+    if(matrix[i][col - 1] == group)
+      s2 = 1;
+  }
+  for(j = 0; j < col; j++)
+  {
+   if(matrix[0][j] == group)
+     s3 = 1;
+   if(matrix[row - 1][j] == group)
+     s4 = 1;
+  }
+  if(s1 == 1 && s2 == 1 && s3 == 1 && s4 == 1)
+    return 1;
+  else
+    return 0;
+}
+void floodFill(int matrix[maxR][maxC], int r, int c, int group)
+{
+ if(matrix[r][c] == 0 || matrix[r][c] == group)
+   return;
+ matrix[r][c] = group;
+ if(r > 0)
+   floodFill(matrix, r - 1, c, group);
+ if(c > 0)
+   floodFill(matrix, r, c-1, group);
+ if(r < row - 1)
+   floodFill(matrix, r + 1, c, group);
+ if(c < col - 1)
+   floodFill(matrix, r, c + 1, group);
+}
+int main(int arr,char* array[])
+{
+  //
+  int seed;
+	// MPI
+	//
+  int         rank,size;
+  MPI_Status  status;
+  int         tag=0;
+	//
+	// other
+	//
+  MPI_Init(&arr,&array);
+  MPI_Comm_size(MPI_COMM_WORLD,&size);
+  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+  row = 30;
+  col = 30;
+   prob = 0.0;
+  if(rank == 0)//manager
+  {
+    double map[100];
+   
+    int loop = 0;
+    seed = time(NULL);
+    
+    
+    double span;
+    int worker = 1;
+    while(prob < 1.0)
+    {
+      
+      //send stuff
+      MPI_Send(&prob,1,MPI_DOUBLE,worker,tag,MPI_COMM_WORLD);
+      MPI_Send(&seed,1,MPI_INT,worker,tag,MPI_COMM_WORLD);
+      
+      MPI_Recv(&span,1,MPI_DOUBLE,MPI_ANY_SOURCE,tag,MPI_COMM_WORLD,&status);
+      map[(int)(100 * prob)] = span;
+      prob += 0.01;
+      loop++;
+      worker++;
+      if(worker == size)
+	worker = 1;
+      
+    }
+  prob = -1.0;
+  worker = 1;
+  while(worker < size)
+  {
+    MPI_Send(&prob,1,MPI_DOUBLE,worker,tag,MPI_COMM_WORLD);
+    worker++;
+  }
+  printf("\nWriting to outfile... Terminating program\n");
+  FILE* out = fopen("lab03mpi.txt", "w");
+  fprintf(out, "#Row=%i Col=%i\n", row, col);
+  fprintf(out, "#Probability\tPercent_Spanning\n");
+  double d = 0.0;
+  while(d < 1.0)
+  {
+    fprintf(out, "%f\t", d);
+    fprintf(out, "%f\n", map[(int)(100 * d)]);
+    d += 0.01;
+  }
+  fclose(out);
+  }
+  else //workers
+  {
+    while(1)
+    {
+    MPI_Recv(&prob,1,MPI_DOUBLE,0,tag,MPI_COMM_WORLD,&status);
+    if(prob == -1.0)
+    {
+      break;
+    }
+    MPI_Recv(&seed,1,MPI_INT,0,tag,MPI_COMM_WORLD,&status);
+    srand(seed);
+    int matrix[maxR][maxC];
+    int spann = 0;
+    int trial = 0;
+    while( trial < 1000)
+    {
+      int i, j;
+      int occupy = 0;
+      for(i = 0; i < row; i++)
+      {
+	for(j= 0; j < col; j++)
+	{
+	  if((rand()%1000)/1000.0 < prob)
+	   {
+	     matrix[i][j] = 1;
+	     occupy++;    
+	   }
+	  else
+	    matrix[i][j] = 0;// 0 or 1
+	}
+      }
+      int group = 2;
+      for(i = 0; i < row; i++)
+      {
+	for(j = 0; j < col; j++)
+	  if(matrix[i][j] == 1)
+	  {
+	    floodFill(matrix, i, j, group);
+	    group++;
+	  } 
+      }
+      int count = 2;
+      int b = 0;
+      while(count < group)
+      {
+	int bool = span(matrix, count);
+	if(bool == 1)
+	{
+	  b = 1;
+	  spann++;
+	  break;
+	}
+	count++;
+      } 
+      trial++;
+    }
+    double percent = 1.0 * spann/trial;
+    MPI_Send(&percent ,1,MPI_DOUBLE,0,tag,MPI_COMM_WORLD);
+    }
+  }
+  MPI_Finalize();
+  return 0;
+  
+}

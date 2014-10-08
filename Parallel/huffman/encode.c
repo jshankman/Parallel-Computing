@@ -1,0 +1,222 @@
+//Jake Shankman 9/21/2012
+//Huffman Encoding C
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <stdlib.h>
+
+char map[127][1000];
+typedef struct TreeNode
+{
+	char symbol;
+	int frequency;
+	//
+	struct TreeNode* left;
+	struct TreeNode* right;
+	//
+} Node;
+
+void getSmallest(Node* tree[],int* ps1,int* ps2, int size)
+{
+ int s1; 
+ int s2;
+ int i;
+ s1 = -1000;
+ s2 = -1000;
+ for(i = 0; i < size; i++)
+ {
+   printf("i=%i\n", i);
+   if(tree[i] != NULL)
+   {
+    if(s1 == -1000)
+       s1 = i;
+    else if(tree[i] -> frequency < tree[s1] -> frequency)
+      s1 = i;
+    if(s2 = -1000 && s1 != -1000)
+      s2 = i;
+    else if(tree[i] -> frequency < tree[s2] -> frequency)
+      s2 = i;
+   }
+  }
+  printf("%i%c", tree[s1] -> frequency, tree[s1] -> symbol);
+  printf("%i%c\n", tree[s2] -> frequency, tree[s2] -> symbol);
+ *ps1=s1;
+ *ps2=s2;
+}
+int findRoot(Node* tree[], int total)
+{
+  int index;
+  int i;
+  for(i = 0; i < total; i++)
+    if(tree[i] != '\0')
+      index = i;
+  return index;  
+}
+void recur(Node* tree[], Node* node, char* string, int level, char direction)
+{
+  if(direction == 'l')
+    string[level-1] = '0';
+  else if(direction == 'r')
+    string[level-1] = '1';
+  else
+    string[level] = '\0';
+  if(node -> left == NULL && node -> right == NULL)
+  {
+    string[level] = '\0';
+    printf("%c\t\n", node -> symbol);
+    int i;
+    for(i = 0; i < strlen(string); i++)
+    {
+      if(string[i] != '\0')
+      {
+	map[(int)(node->symbol)][i] = string[i];
+	printf("%s", map[node->symbol]);
+      }
+    }
+    map[(int)(node->symbol)][i]='\0';
+    printf("\n");
+    return;
+  }
+  recur(tree, node -> left, string, level + 1, 'l');
+  recur(tree, node -> right, string, level + 1, 'r');
+}
+int main(int arr,char* array[])
+{
+  int i, total;
+  if(arr < 2)
+  {
+    printf("Give me a message! Remember that _ = space!\n");
+    return 0;
+  }
+  char* message = array[1];
+  total = strlen(message);
+  Node* tree[total];
+  for(i = 0; i < total; i++)
+    tree[i] = NULL;
+  
+
+  printf("total=%i\n", total);
+  int count, count2;
+  count =count2 = 0;
+  for(i = 0; i < total; i++)
+  {
+    if(message[i] != '\0')
+    {
+      int z;
+      int q;
+      q = 0;
+      for(z = 0; z < total; z++)
+      {
+	if(tree[z] != '\0')
+	{
+	  if(tree[z] ->symbol == message[i])
+	  {
+	    tree[z] -> frequency++;
+	    q = 1;
+	  } 
+	}
+      }
+      if(tree[i] == '\0' && q == 0)
+      {
+	Node* temp;
+	temp = (Node*)malloc(sizeof(Node));
+	temp -> symbol = message[i];
+	temp -> frequency = 1;
+	temp -> left = NULL;
+	temp -> right = NULL;
+	tree[i] = temp;
+	count++;
+	count2++;
+      }
+    }
+      
+    }
+    int minbits;
+    minbits = 0;
+    for(i = 0; i < total; i++)
+    {
+      if(tree[i] != '\0')
+      {
+	minbits += (int)(-1*(log((double)(tree[i] -> frequency)/total)/log(2)));
+      }
+     }
+    printf("Minimum # of bits=\t%i\n", minbits);
+    //
+    char code[minbits*2];
+    for(i = 0; i < minbits*2; i++)
+      code[i] = '\0';
+    for(i = 0; i < total; i++)
+    {
+      if(tree[i] != '\0')
+      {
+	printf("%c\t%d\n", tree[i] -> symbol, tree[i] -> frequency);
+      }
+     }
+     int s1;
+     int s2;
+     s1 = s2 = 0;
+     while(count > 1)
+     {
+      getSmallest(tree,&s1,&s2, total);
+      //FAULT LIES IN GET SMALLEST
+      Node* compact;
+      compact = (Node*)malloc(sizeof(Node));
+      compact -> symbol = '*';
+      compact -> frequency = tree[s1] -> frequency + tree[s2] -> frequency;
+      compact -> left = tree[s1];
+      compact -> right = tree[s2];
+      tree[s1] = compact;
+      tree[s2] = NULL;
+      count--;
+     }
+     
+  int index = findRoot(tree, total);
+  recur(tree, tree[index], code, 0, '*');
+	//Recursive search
+  FILE* out;
+  out = fopen("lab02.txt", "w");
+  fprintf(out, "%i\n", count2);
+  i = 0;
+  while(i < 127)
+  {
+    if(map[i] != '\0')
+    { 
+      int b = 0;
+      int j = 0;
+      while(j < 1000)
+      {
+	if(map[i][j] != '\0')
+	{
+	if(b == 0)
+	  fprintf(out, "%c", (char)i);
+	fprintf(out, "%c", map[i][j]); 
+	b = 1;
+	}
+	j++;
+      }
+      if(b != 0)
+	fprintf(out, "\n");
+    }
+    i++;
+  }
+  i = 0;
+  while( i < total)
+  {
+    char temp = message[i];
+    int index = (int) temp;
+    int j = 0;
+    while(j < 1000)
+    {
+      if(map[index][j] != '\0')
+      {
+	fprintf(out, "%c", map[index][j]);
+      }
+      j++;
+    }
+    i++;
+  }
+  fclose(out);
+  return 0;
+}
+
+//end of file

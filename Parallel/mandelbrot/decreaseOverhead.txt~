@@ -1,0 +1,1 @@
+To send an array in mpi, don't use &a. Use a and for size (the item following &a normally being 1), use the # of elements in the array. build array

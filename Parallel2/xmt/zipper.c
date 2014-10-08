@@ -1,0 +1,103 @@
+//Merge Sort
+//Torbert, March 2013
+//Jake Shankman 3/20/2013
+// gcc -fopenmp filename
+#include <stdio.h>
+#include <omp.h>
+//
+#define N 8
+#define logN 3
+//
+int main(void)
+{
+  int rank, size=N/2, j, a;
+  //
+  //CHECK THE ENDS!!!!!!!!!!!
+  int A[N/2] = {1, 2, 4, 7}; //{1, 2, 7, 9} works... something wrong w/ 4
+  int B[N/2] = {3, 5, 6, 8};
+  int data[N];
+  //
+
+  //
+  omp_set_num_threads(size);
+  printf("%d\n", size);
+  //
+  //A into B
+  #pragma omp parallel private(rank) // time O(1)
+  {
+    rank = omp_get_thread_num();
+    //
+   int start = 0;
+   int middle, index;
+   int end = size - 1;
+   int target = A[rank];
+   if(target < B[0])
+     index = 0;
+   else if(target > B[size -1])
+     index = size;
+   else
+   {
+     while( start < end)
+     {
+      middle = (start + end)/2;
+      if(target < B[middle])
+	end = middle - 1;
+      else
+	start = middle + 1; 
+      }
+      index = end;
+      if(target > B[index])
+	++index;
+      else if(target < B[index-1])
+	--index;
+    }
+    if(target == 4)
+      printf("\n4, result=%d\n", index +rank);
+    data[index + rank] = target;
+  }
+  //B into A
+  #pragma omp parallel private(rank) // time O(1)
+  {
+    rank = omp_get_thread_num();
+    //
+   int start = 0;
+   int middle, index;
+   int end = size - 1;
+   int target = B[rank];
+   if(target < A[0])
+     index = 0;
+   else if(target > A[size -1])
+     index = size;
+   else
+   {
+     while( start < end)
+     {
+      middle = (start + end)/2;
+      if(target < A[middle])
+	end = middle - 1;
+      else
+	start = middle + 1; 
+      }
+      
+      
+      
+      index = end;
+      if(target > A[index])
+	++index;
+      else if(target < A[index -1])
+	--index;
+    }
+    data[index + rank] = target;
+  }
+ int x;
+ printf("Printing A and B...\n\n");
+ for(x = 0; x < N/2; ++x)
+ {
+   printf("A[%d]= %d\tB[%d]= %d\n", x, A[x], x, B[x]);
+ }
+ printf("\nPrinting zippered data...\n\n");
+ for(x = 0; x<N; ++x)
+   printf("%d_%d ", data[x], x);
+ printf("\n\n");
+  return 0;
+}

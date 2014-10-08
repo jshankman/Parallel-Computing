@@ -1,0 +1,2 @@
+mpimandelbrot: mpimandelbrot.c
+	mpicc -lm -lGLU -lglut -o mpimandelbrot mpimandelbrot.c

@@ -1,0 +1,45 @@
+managerworker.txt
+
+18 October 2012
+
+Your percolate program and plot
+should both be working, first.
+
+Now the question is how to generate
+the same plot (or a high resolution
+portion of part of it) using MPI.
+
+EASIEST
+Manager sends each Worker a probability,
+the grid dimensions, and number of trials.
+Worker calculates the spanning percentage
+and sends it to the Manager.  Then the
+Manager sends the Worker a new probability,
+dimensions, trials (i.e., another problem)
+for the Worker to solve and send back.
+
+This process of send, calculate, send back,
+continues between the Manager and each of
+the Workers until all the tasks are done.
+
+Then the Manager can send a "kill signal"
+to each of the Workers so they know that
+it is time to go home for the day.
+
+Alternatively, slice the probability range
+at the start to minimize sends/recvs, but
+it is not obvious that all such slices will
+require the same amount of computation, so
+the workload may not be balanced.
+
+MEDIUM
+For a single probability, spread the trials
+among multiple Workers.  Now the spanning
+percentage must be accumulated step-by-step
+by the Manager, but the work will balance.
+
+HARDEST
+For a single trial, spread the grid among
+multiple Workers.  Now the Workers will need
+to communicate among themselves to determine
+if even one single trial spanned or not.

@@ -1,0 +1,61 @@
+percolate.txt
+
+28 September 2012
+
+STEP ONE
+========
+Grid of integers.
+Size is 40x30 or 30x30.
+Initialize each slot to zero or one.
+
+Use...
+   #include <stdlib.h>
+   srand(7777);
+   int x=rand();
+   int y=(x%2); // 0 or 1
+
+Floodfill up down left right.
+Label each connected component.
+Number the groups 1,2,3,4,5,...
+
+Determine yes/no if any group touches 
+all four borders of the grid.  If so
+it is said to "span" the entire grid.
+
+Obviously only one component could do
+this, or zero, but never two or more.
+
+Run trials for many different random
+number seeds (the 7777 listed above)
+and print out the grid twice for each,
+first with just the zero or one, then
+with the group number labels instead.
+
+For each trial indicate yes/no spanning.
+
+STEP TWO
+========
+Change the probability of placing a one
+in any particular slot of the grid.
+Write a function with three arguments,
+the width of the grid, the height of the
+grid, and the probability of placement.
+
+Run trials for many different random
+number seeds (the 7777 listed above)
+and a range of probability thresholds
+from 0.0 to 1.0 -- obviously the extreme
+cases either never or always find spans.
+
+For each trial indicate yes/no spanning.
+
+STEP THREE
+==========
+Increase the grid size.  Plot the percent
+of spanning over N trials for p = 0 to 1.
+Horizontal axis is probability, range 0-1.
+Vertical axis is percent of spanning, 0-1.
+So... (0,0) and (1,1) are both on the plot.
+
+What happens to the plot as the grid size
+increases?  What happens to the runtime?

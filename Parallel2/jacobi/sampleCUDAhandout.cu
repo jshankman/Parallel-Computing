@@ -1,0 +1,66 @@
+//nvcc filename.cu
+//
+// Torbert, 17 April 2013
+//
+#include <stdio.h>
+//
+#define N	8
+#define logN	3
+//
+__global__ void pairwise_sums(int* tree, int* kuda)
+{
+  int rank = threadIdx.x; //flat model
+  //
+  int pcol = rank;
+  int prow =* kuda;
+  int pindex = prow*N+pcol;
+  //
+  int lcol = 2*rank+0;
+  int lrow =* kuda + 1;
+  int lindex = lrow*N +lcol;
+  //
+  int rcol = 2*rank+1;
+  int rrow =* kuda+1;
+  int rindex = rrow*N + rcol;
+  //
+  tree[pindex]=tree[lindex]+tree[rindex];
+}
+int main(void)
+{
+  int k, sum, size = N/2;
+  //
+  int* data;
+  //
+  int* tree;
+  int* kuda; // loop variable
+  //
+  data = (int*)malloc(N*sizeof(int));
+  //
+  cudaMalloc((void**)&tree, sizeof(int)*(N*(logN + 1)));
+  cudaMalloc((void**)&kuda, sizeof(int));
+  //
+  data[0] = 3; data[1] = 1; data[2] = 4; data[3] = 1;
+  data[4] = 5; data[5] = 9; data[6] = 2; data[7] = 6;
+  //
+  cudaMemcpy(tree+logN*N, data, sizeof(int)*N, cudaMemcpyHostToDevice);
+  //
+  for(k = logN - 1; k >= 0; k--)
+  {
+    cudaMemcpy(kuda, &k, sizeof(int), cudaMemcpyHostToDevice);
+    //
+    dim3 dimGrid(1), dimBlock(size); size /= 2;
+    //
+    pairwise_sums<<<dimGrid,dimBlock>>>(tree,kuda);
+  }
+  //
+  cudaMemcpy(&sum, tree, sizeof(int), cudaMemcpyDeviceToHost);
+  //
+  printf("sum=%d\n", sum);
+  //
+  free(data);
+  //
+  cudaFree(kuda);
+  cudaFree(tree);
+  //
+  return 0;
+}

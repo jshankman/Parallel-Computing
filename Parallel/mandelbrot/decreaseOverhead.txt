@@ -1,0 +1,5 @@
+To send an array in mpi, don't use &a. Use a and for size (the item following &a normally being 1), use the # of elements in the array. build array.
+Only recieve in the i component; receive the array of stuff. Loop over the colors. Only really need myX since you have all myY. First batch of recieve needs to be careful though...
+First batch of send with send first three columns. Then problem above is okay.
+The color-setting/pixel-filling needs to have a loop over all of j.
+^Should significantly decrease overhead and increase speed to faster than current (and faster than serial).

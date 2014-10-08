@@ -1,0 +1,27 @@
+#Jake Shankman
+#Period 5
+#9/5/2012
+#Decode
+
+
+    
+code = open('decode.txt','r').read().split()
+numItem = code.pop(0)
+codec = {}
+i = 0
+while i < int(numItem):
+  string = code.pop(0)
+  codec[string[1:]] = string[0]
+  i += 1
+  
+print codec
+message = code.pop()
+string = ''
+temp = ''
+while len(message) > 1:
+  temp += message.pop(0)
+  if temp in codec.keys():
+    string += codec[temp]
+    temp = ''
+print string
+  
